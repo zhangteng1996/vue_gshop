@@ -4,7 +4,7 @@
       <div class="menu-wrapper">
         <ul>
           <!--current-->
-          <li class="menu-item" v-for="(good, index) in goods" :key="index">
+          <li class="menu-item" v-for="(good, index) in goods" :key="index" :class="{current:index===currentIndex}">
             <span class="text bottom-border-1px">
               <img class="icon" v-if="good.icon" :src="good.icon">
               {{good.name}}
@@ -13,7 +13,7 @@
         </ul>
       </div>
       <div class="foods-wrapper">
-        <ul>
+        <ul ref="rightUl">
           <li class="food-list-hook" v-for="(good, index) in goods" :key="index">
             <h1 class="title">{{good.name}}</h1>
             <ul>
@@ -46,19 +46,63 @@
 
 <script>
   import {mapState} from 'vuex'
+  import BScroll from 'better-scroll'
   export default {
-    mounted () {
-      this.$store.dispatch('getShopGoods')
+    data (){
+      return{
+        scrollY:0,
+        tops:[],
+      }
+    },
+   async mounted () {
+      this.$store.dispatch('getShopGoods', () => {
+        this.$nextTick(() =>{
+         this._initScroll()
+          this._initTops()
+        })
+      })
     },
 
     computed: {
       ...mapState({
         goods: state => state.shop.goods
+      }),
+      currentIndex(){
+        const {scrollY,tops} = this
+        return tops.findIndex((top,index) => scrollY>=top && scrollY<tops[index+1])
+      }
+    },
+    methods:{
+      _initScroll(){
+      const leftScroll = new BScroll('.menu-wrapper',{})
+      const rightScroll = new BScroll('.foods-wrapper',{
+        probeType:1,
       })
+
+        rightScroll.on('scroll',({x,y}) =>{
+         console.log('scroll',x,y)
+          this.scrollY = Math.abs(y)
+        })
+        rightScroll.on('scrollEnd',({x,y}) =>{
+          console.log('scrollEnd',x,y)
+          this.scrollY = Math.abs(y)
+        })
+      },
+      _initTops(){
+        const  tops = []
+        let top = 0
+        tops.push(top)
+        const lis = this.$refs.rightUl.children
+        Array.prototype.slice.call(lis).forEach(li => {
+          top += li.clientHeight
+          tops.push(top)
+        })
+        this.tops = tops
+        console.log('tops',tops)
+      }
     }
   }
 </script>
-
 <style lang="stylus" rel="stylesheet/stylus">
   @import "../../../common/stylus/mixins.styl"
 
