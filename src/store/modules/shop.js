@@ -4,7 +4,8 @@ import {
   RECEIVE_RATINGS,
   RECEIVE_GOODS,
   ADD_FOOD_COUNT,
-  REDUCE_FOOD_COUNT
+  REDUCE_FOOD_COUNT,
+  CLEAR_CART
 } from '../mutation-types'
 
 import {
@@ -52,7 +53,13 @@ const mutations = {
       }
     }
   },
+      [CLEAR_CART] (state){
+       state.cartFoods.forEach(food => food.count =0)
+
+       state.cartFoods = []
+  }
 }
+
 
 const actions = {
   // 异步获取商家信息
@@ -90,6 +97,9 @@ const actions = {
     } else {
       commit(REDUCE_FOOD_COUNT,{food})
     }
+  },
+  clearCart ({commit}){
+    commit(CLEAR_CART)
   }
 }
 
